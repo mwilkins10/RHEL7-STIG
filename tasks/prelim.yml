@@ -54,6 +54,8 @@
     check_mode: no
     failed_when: rhel7stig_dconf_audit.rc >= 2
     register: rhel7stig_dconf_audit
+    tags:
+    - skip_ansible_lint
 
   - name: "PRELIM | Install dconf"
     package:
@@ -228,6 +230,7 @@
   changed_when: false #rhel_07_020680_getent.stdout_lines is defined
   failed_when: false
   tags:
+  - skip_ansible_lint
   - RHEL-07-020680
   - RHEL-07-020710
   - RHEL-07-020720
@@ -269,6 +272,7 @@
   when:
   - rhel_07_021350
   tags:
+  - skip_ansible_lint
   - cat1
   - high
   - RHEL-07-021350
