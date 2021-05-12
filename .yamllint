@@ -9,7 +9,10 @@ extends: default
 
 rules:
   indentation:
-    spaces: consistent
+    # Requiring 2 space indentation
+    spaces: 2
+    # Requiring consistent indentation within a file, either indented or not
+    indent-sequences: consistent
   truthy: disable
   braces:
     max-spaces-inside: 1
