@@ -28,7 +28,7 @@
     register: epel_installed
     when:
     - python36_rpm_present.rc != '0'
-  
+
   - name: "PREREQ | Check required packages installed | Python3 "
     package:
       name: "{{ item }}"
@@ -181,7 +181,7 @@
   package:
     name: cronie
   vars:
-     ansible_python_interpreter: "{{ python2_bin }}"
+    ansible_python_interpreter: "{{ python2_bin }}"
   when:
   - rhel_07_020030 or
     rhel_07_020040 or
@@ -227,7 +227,7 @@
 - name: "PRELIM | RHEL-07-020680 | RHEL-07-020710 | RHEL-07-020720 | RHEL-07-020730 | Gather local interactive user directories"
   shell: "getent passwd { {{ rhel7stig_int_gid }}..65535} | cut -d: -f6 | sort -u | grep -v '/var/' | grep -v '/nonexistent/*' | grep -v '/run/*'"
   register: rhel_07_020680_getent
-  changed_when: false #rhel_07_020680_getent.stdout_lines is defined
+  changed_when: false  # rhel_07_020680_getent.stdout_lines is defined
   failed_when: false
   tags:
   - skip_ansible_lint
@@ -371,7 +371,7 @@
       name: openssh-server
     vars:
       ansible_python_interpreter: "{{ python2_bin }}"
-    
+
   - name: PRELIM | Start SSH
     service:
       name: sshd
@@ -388,4 +388,3 @@
     when: not rhel7stig_ssh_host_rsa_key_stat.stat.exists
     notify: clean up ssh host key
   when: rhel7stig_ssh_required
-
