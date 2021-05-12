@@ -5,7 +5,7 @@
     shell: |
         rpm -Va --nolinkto --nofiledigest --nosize --nomtime --nodigest --nosignature | grep -E '^(.M|.....U|......G)' | tee /dev/stderr | cut -c13- | sed 's/^ //' | xargs rpm -qf --qf='%{name}\n' | sort -u
     args:
-        warn: no
+      warn: no
     check_mode: no
     failed_when: no
     changed_when: rhel_07_010010_audit.stdout |length > 0
@@ -13,7 +13,7 @@
 
   - name: "HIGH | RHEL-07-010010 | AUDIT | The Red Hat Enterprise Linux operating system must be configured so that the file permissions, ownership, and group membership of system files and commands match the vendor values."
     debug:
-        msg: "{{ rhel_07_010010_audit.stderr_lines }}"
+      msg: "{{ rhel_07_010010_audit.stderr_lines }}"
     changed_when: yes
     when: rhel_07_010010_audit.stdout |length > 0
 
@@ -22,7 +22,7 @@
             ( rpm --setugids {{ item }}; rpm --setperms {{ item }} )
             2>&1 1>&2 | grep -v ': No such file or directory$'
     args:
-        warn: no
+      warn: no
     register: rhel_07_010010_patch
     failed_when: rhel_07_010010_patch.stdout |length > 0
     ignore_errors: yes
@@ -38,7 +38,7 @@
     when:
     - rhel_07_010010_patch is changed
     - item is failed
-  when: 
+  when:
   - rhel_07_010010
   tags:
   - RHEL-07-010010
@@ -66,7 +66,7 @@
       warn: no
     with_items: "{{ rhel_07_010020_audit.stdout_lines }}"
     when: rhel_07_010020_audit.stdout_lines | length > 0
-  when: 
+  when:
   - rhel_07_010020
   tags:
   - RHEL-07-010020
@@ -137,7 +137,7 @@
   - regexp: ^password_pbkdf2
     line: "^password_pbkdf2 {{ rhel7stig_boot_superuser }} {{ rhel7stig_bootloader_password_hash }}"
   no_log: true
-  notify: 
+  notify:
   - make grub2 config
   when:
   - rhel_07_010480 or
@@ -160,15 +160,16 @@
       mode: '0644'
       regexp: "{{ item.regexp }}"
       line: "{{ item.line }}"
-    notify: 
-    - confirm grub2 user cfg
-    - make grub2 config
     with_items:
     - regexp: ^GRUB2_PASSWORD={{ rhel7stig_bootloader_password_hash }}
       line: GRUB2_PASSWORD={{ rhel7stig_bootloader_password_hash }}
-    no_log: true
     when:
     - not rhel7stig_machine_uses_uefi
+    no_log: true
+    notify:
+    - confirm grub2 user cfg
+    - make grub2 config
+    
 
   - name: "HIGH | RHEL-07-010491 | Red Hat Enterprise Linux operating systems version 7.2 or newer using Unified Extensible Firmware Interface (UEFI) must require authentication upon booting into single-user and maintenance modes."
     lineinfile:
@@ -180,12 +181,13 @@
     with_items:
     - regexp: ^GRUB2_PASSWORD=password_pbkdf2 {{ rhel7stig_boot_superuser }}
       line: ^GRUB2_PASSWORD=password_pbkdf2 {{ rhel7stig_boot_superuser }} {{ rhel7stig_bootloader_password_hash }}
+    when:
+    - rhel7stig_machine_uses_uefi
     no_log: true
     notify:
     - confirm grub2 user cfg
     - make grub2 config
-    when:
-    - rhel7stig_machine_uses_uefi
+    
 
   - name: |
       "HIGH | RHEL-07-010482 | Red Hat Enterprise Linux operating systems version 7.2 or newer with a Basic Input/Output System (BIOS) must require authentication upon booting into single-user and maintenance modes."
@@ -194,13 +196,32 @@
       path: /boot/grub2/grub.cfg
       regexp: "{{ item.regexp }}"
       line: "{{ item.line }}"
-    notify: 
+    notify:
     - make grub2 config
     with_items:
     - regexp: ^\s*set superusers=
       line: '    set superusers="{{ rhel7stig_boot_superuser }}"'
     - regexp: ^\s*export superusers
       line: '    export superusers'
+    when:
+    - not rhel7stig_machine_uses_uefi
+  - name: |
+      "HIGH | RHEL-07-010482 | Red Hat Enterprise Linux operating systems version 7.2 or newer with a Basic Input/Output System (BIOS) must require authentication upon booting into single-user and maintenance modes."
+      "HIGH | RHEL-07-010491 | Red Hat Enterprise Linux operating systems version 7.2 or newer using Unified Extensible Firmware Interface (UEFI) must require authentication upon booting into single-user and maintenance modes."
+    lineinfile:
+      path: /boot/efi/EFI/redhat/user.cfg
+      regexp: "{{ item.regexp }}"
+      line: "{{ item.line }}"
+    notify:
+    - make grub2 config
+    with_items:
+    - regexp: ^\s*set superusers=
+      line: '    set superusers="{{ rhel7stig_boot_superuser }}"'
+    - regexp: ^\s*export superusers
+      line: '    export superusers'
+    when:
+    - rhel7stig_machine_uses_uefi
+
   when:
   - rhel_07_010482 or
     rhel_07_010491
@@ -217,7 +238,7 @@
     state: absent
   vars:
     ansible_python_interpreter: "{{ python2_bin }}"
-  when: 
+  when:
   - "'rsh-server' in ansible_facts.packages"
   - rhel_07_020000
   tags:
@@ -230,7 +251,7 @@
     state: absent
   vars:
     ansible_python_interpreter: "{{ python2_bin }}"
-  when: 
+  when:
   - "'ypserv' in ansible_facts.packages"
   - rhel_07_020010
   tags:
@@ -272,9 +293,9 @@ n digitally signed using a certificate that is issued by a Certificate Authority
   - RHEL-07-020060
   - yum
 
-- name: |
-    "HIGH | RHEL-07-020210 | PATCH | The Red Hat Enterprise Linux operating system must enable SELinux."
-    "HIGH | RHEL-07-020220 | PATCH | The Red Hat Enterprise Linux operating system must enable the SELinux targeted policy."
+- name: | 
+   "HIGH | RHEL-07-020210 | PATCH | The Red Hat Enterprise Linux operating system must enable SELinux."
+   "HIGH | RHEL-07-020220 | PATCH | The Red Hat Enterprise Linux operating system must enable the SELinux targeted policy."
   selinux:
     state: enforcing
     policy: targeted
@@ -294,7 +315,7 @@ n digitally signed using a certificate that is issued by a Certificate Authority
     masked: yes
   when: rhel_07_020230
   tags:
-      - RHEL-07-020230
+  - RHEL-07-020230
 
 - name: "HIGH | RHEL-07-020231 | PATCH | The Red Hat Enterprise Linux operating system must be configured so that the x86 Ctrl-Alt-Delete key sequence is disabled in the GUI."
   copy:
@@ -329,7 +350,7 @@ n digitally signed using a certificate that is issued by a Certificate Authority
 
 - name: "HIGH | RHEL-07-020310 | The Red Hat Enterprise Linux operating system must be configured so that the root account must be the only account having unrestricted access to the system."
   block:
-      # Currently just locks user account
+  # Currently just locks user account
   - name: "HIGH | RHEL-07-020310 | AUDIT | The Red Hat Enterprise Linux operating system must be configured so that the root account must be the only account having unrestricted access to the system."
     shell: "cat /etc/passwd | awk -F: '($3 == 0 && $1 != \"root\") {i++;print $1 } END {exit i}'"
     check_mode: no
@@ -348,7 +369,7 @@ n digitally signed using a certificate that is issued by a Certificate Authority
 - name: "HIGH | RHEL-07-021350 | The Red Hat Enterprise Linux operating system must implement NIST FIPS-validated cryptography for the following: to provision digital signatures, to generate cryptographic hashes, and to protect data requiring data-at-re
 st protections in accordance with applicable federal laws, Executive Orders, directives, policies, regulations, and standards."
   block:
-  - name: "HIGH | RHEL-07-021350 | PATCH | The Red Hat Enterprise Linux operating system must implement NIST FIPS-validated cryptography for the following: to provision digital signatures, to generate cryptographic hashes, and to protect data requiring 
+  - name: "HIGH | RHEL-07-021350 | PATCH | The Red Hat Enterprise Linux operating system must implement NIST FIPS-validated cryptography for the following: to provision digital signatures, to generate cryptographic hashes, and to protect data requiring
 data-at-rest protections in accordance with applicable federal laws, Executive Orders, directives, policies, regulations, and standards."
     package:
       name: dracut-fips
@@ -435,7 +456,7 @@ data-at-rest protections in accordance with applicable federal laws, Executive O
     command: grep -P '^\s*GRUB_CMDLINE_LINUX=".*(?<=[" ]){{ item | regex_escape }}(?=[" ]).*"$' /etc/default/grub
     check_mode: no
     with_items:
-    - "{{ fips_value }}" 
+    - "{{ fips_value }}"
     - boot=UUID={{ ansible_mounts | json_query(query) }}
     vars:
       query: "[?mount=='{{ rhel7stig_boot_part }}'].uuid | [0]"
@@ -452,7 +473,7 @@ data-at-rest protections in accordance with applicable federal laws, Executive O
     - rhel_07_021350_audit is failed
     - not ansible_check_mode or
       rhel_07_021350_audit.rc > 1
-  when: 
+  when:
   - rhel_07_021350
   tags:
   - RHEL-07-021350
@@ -463,7 +484,7 @@ data-at-rest protections in accordance with applicable federal laws, Executive O
     state: absent
   vars:
     ansible_python_interpreter: "{{ python2_bin }}"
-  when: 
+  when:
   - rhel_07_021710
   - "'telnet-server' in ansible_facts.packages"
   tags:
@@ -519,7 +540,7 @@ data-at-rest protections in accordance with applicable federal laws, Executive O
       path: "{{ item }}"
       state: absent
     with_items: "{{ rhel_07_040540_audit.stdout_lines }}"
-  when: 
+  when:
   - rhel_07_040540
   tags:
   - RHEL-07-040540
@@ -538,7 +559,7 @@ data-at-rest protections in accordance with applicable federal laws, Executive O
       path: "{{ item }}"
       state: absent
     with_items: "{{ rhel_07_040550_audit.stdout_lines }}"
-  when: 
+  when:
   - rhel_07_040550
   tags:
   - RHEL-07-040550
@@ -594,9 +615,8 @@ data-at-rest protections in accordance with applicable federal laws, Executive O
     with_items: "{{ rhel_07_040800_audit.results }}"
     notify: restart snmpd
     when: item.stdout_lines | length > 0
-  when: 
+  when:
   - rhel_07_040800
   tags:
   - RHEL-07-040800
   - snmp
-  
