@@ -166,6 +166,9 @@
     path: /etc/pam.d/passwd
     regexp: '^password   substack     system-auth'
     line: 'password   substack     system-auth'
+    owner: root
+    group: root
+    mode: 0640
   when:
   - rhel_07_010118
   tags:
@@ -178,6 +181,9 @@
     dest: /etc/pam.d/system-auth
     regexp: '^#?password required pam_pwquality.so retry'
     line: password required pam_pwquality.so retry=3
+    owner: root
+    group: root
+    mode: 0640
   when: rhel_07_010119
   tags:
   - RHEL-07-010119
@@ -188,6 +194,9 @@
     dest: /etc/security/pwquality.conf
     regexp: '^#?\s*ucredit'
     line: "ucredit = {{ rhel7stig_password_complexity.ucredit | default('-1') }}"
+    owner: root
+    group: root
+    mode: 0640
   when: rhel_07_010120
   tags:
   - RHEL-07-010120
@@ -199,6 +208,9 @@
     dest: /etc/security/pwquality.conf
     regexp: '^#?\s*lcredit'
     line: "lcredit = {{ rhel7stig_password_complexity.lcredit | default('-1') }}"
+    owner: root
+    group: root
+    mode: 0640
   when: rhel_07_010130
   tags:
   - RHEL-07-010130
@@ -210,6 +222,9 @@
     dest: /etc/security/pwquality.conf
     regexp: '^#?\s*dcredit'
     line: "dcredit = {{ rhel7stig_password_complexity.dcredit | default('-1') }}"
+    owner: root
+    group: root
+    mode: 0640
   when: rhel_07_010140
   tags:
   - RHEL-07-010140
@@ -221,6 +236,9 @@
     dest: /etc/security/pwquality.conf
     regexp: '^#?\s*ocredit'
     line: "ocredit = {{ rhel7stig_password_complexity.ocredit | default('-1') }}"
+    owner: root
+    group: root
+    mode: 0640
   when: rhel_07_010150
   tags:
   - RHEL-07-010150
@@ -232,6 +250,9 @@
     dest: /etc/security/pwquality.conf
     regexp: '^#?\s*difok'
     line: "difok = {{ rhel7stig_password_complexity.difok | default('8') }}"
+    owner: root
+    group: root
+    mode: 0640
   when: rhel_07_010160
   tags:
   - RHEL-07-010160
@@ -243,6 +264,9 @@
     dest: /etc/security/pwquality.conf
     regexp: '^#?\s*minclass'
     line: "minclass = {{ rhel7stig_password_complexity.minclass | default('4') }}"
+    owner: root
+    group: root
+    mode: 0640
   when: rhel_07_010170
   tags:
   - RHEL-07-010170
@@ -254,6 +278,9 @@
     dest: /etc/security/pwquality.conf
     regexp: '^#?\s*maxrepeat'
     line: "maxrepeat = {{ rhel7stig_password_complexity.maxrepeat | default('3') }}"
+    owner: root
+    group: root
+    mode: 0640
   when: rhel_07_010180
   tags:
   - RHEL-07-010180
@@ -265,6 +292,9 @@
     dest: /etc/security/pwquality.conf
     regexp: '^#?\s*maxclassrepeat'
     line: "maxclassrepeat = {{ rhel7stig_password_complexity.maxclassrepeat | default('4') }}"
+    owner: root
+    group: root
+    mode: 0640
   when: rhel_07_010190
   tags:
   - RHEL-07-010190
@@ -300,6 +330,9 @@
     dest: /etc/login.defs
     regexp: ^#?ENCRYPT_METHOD
     line: "ENCRYPT_METHOD {{ rhel7stig_login_defaults.encrypt_method | default('SHA512') }}"
+    owner: root
+    group: root
+    mode: 0640
   when: rhel_07_010210
   tags:
   - RHEL-07-010210
@@ -310,6 +343,9 @@
     dest: /etc/libuser.conf
     regexp: ^#?crypt_style
     line: crypt_style = sha512
+    owner: root
+    group: root
+    mode: 0640
   when: rhel_07_010220
   tags:
   - RHEL-07-010220
@@ -320,6 +356,9 @@
     dest: /etc/login.defs
     regexp: ^#?PASS_MIN_DAYS
     line: "PASS_MIN_DAYS {{ rhel7stig_login_defaults.pass_min_days | default('1') }}"
+    owner: root
+    group: root
+    mode: 0640
   when: rhel_07_010230
   tags:
   - RHEL-07-010230
@@ -329,12 +368,16 @@
   block:
   - name: "MEDIUM | RHEL-07-010240 | AUDIT | Passwords must be restricted to a 24 hours/1 day minimum lifetime."
     command: "awk -F: '$1 !~ /^root$/ && $2 !~ /^[!*]/ && $4 < 1 {print $1}' /etc/shadow"
+    args:
+      warn: false
     check_mode: no
     changed_when: no
     register: rhel_07_010240_audit
 
   - name: "MEDIUM | RHEL-07-010240 | PATCH | Passwords must be restricted to a 24 hours/1 day minimum lifetime."
-    command: chage -m 1 {{ item }}
+    command: "chage -m 1 {{ item }}"
+    args:
+      warn: false
     with_items: "{{ rhel_07_010240_audit.stdout_lines }}"
   when: rhel_07_010240
   tags:
@@ -347,6 +390,9 @@
     dest: /etc/login.defs
     regexp: ^#?PASS_MAX_DAYS
     line: "PASS_MAX_DAYS {{ rhel7stig_login_defaults.pass_max_days | default('60') }}"
+    owner: root
+    group: root
+    mode: 0640
   when: rhel_07_010250
   tags:
   - RHEL-07-010250
@@ -356,17 +402,23 @@
   block:
   - name: "MEDIUM | RHEL-07-010260 | AUDIT | The Red Hat Enterprise Linux operating system must be configured so that existing passwords are restricted to a 60-day maximum lifetime."
     command: "awk -F: '$1 !~ /^root$/ && $2 !~ /^[!*]/ && $5 > 60 {print $1}' /etc/shadow"
+    args:
+      warn: false
     check_mode: no
-    changed_when: rhel_07_010260_audit.stdout != ""
+    changed_when: rhel_07_010260_audit.stdout | length > 0
     register: rhel_07_010260_audit
 
   - name: "MEDIUM | RHEL-07-010260 | PATCH | Reset password timeout to prevent locking out user."
     command: chage -d '-1 day' {{ item }}
+    args:
+      warn: false
     check_mode: "{{ rhel7stig_disruptive_check_mode }}"
     with_items: "{{ rhel_07_010260_audit.stdout_lines }}"
 
   - name: "MEDIUM | RHEL-07-010260 | PATCH | The Red Hat Enterprise Linux operating system must be configured so that existing passwords are restricted to a 60-day maximum lifetime."
     command: chage -M 60 {{ item }}
+    args:
+      warn: false
     check_mode: "{{ rhel7stig_disruptive_check_mode }}"
     with_items: "{{ rhel_07_010260_audit.stdout_lines }}"
   when:
@@ -396,6 +448,8 @@
   # TODO: Remove temporary audit check to determine if the following pamd module task needs to be run since the module is not idempotent
   - name: "MEDIUM | RHEL-07-010270 | AUDIT | Check for existing password history reuse settings"
     command: "grep -iE '^password\\s+requisite\\s+pam_pwhistory.so\\s+use_authtok\\s+remember={{ rhel7stig_pam_pwhistory.remember | default(5) }}\\s+retry={{ rhel7stig_pam_pwhistory.retries | default(3) }}$' /etc/pam.d/{{ item }}"
+    args:
+      warn: false
     check_mode: no
     changed_when: no
     failed_when: rhel_07_010270_audit.rc > 1
@@ -418,8 +472,7 @@
       - retry={{ rhel7stig_pam_pwhistory.retries | default(3) }}
     with_items: "{{ rhel_07_010270_audit.results }}"
     when: item.rc == 1
-
-  when: 
+  when:
   - rhel_07_010270
   tags:
   - RHEL-07-010270
@@ -431,7 +484,10 @@
     dest: /etc/security/pwquality.conf
     regexp: '^#?\s*minlen'
     line: "minlen = {{ rhel7stig_password_complexity.minlen | default('15') }}"
-  when: 
+    owner: root
+    group: root
+    mode: 0640
+  when:
   - rhel_07_010280
   tags:
   - RHEL-07-010280
@@ -442,7 +498,10 @@
     dest: /etc/default/useradd
     regexp: ^#?INACTIVE
     line: INACTIVE=0
-  when: 
+    owner: root
+    group: root
+    mode: 0640
+  when:
   - rhel_07_010310
   tags:
   - RHEL-07-010310
@@ -467,36 +526,36 @@
     - "system-auth"
     - "password-auth"
 
-    # TODO: Remove temporary audit check to determine if the following pamd module task needs to be run since the module is not idempotent
-#  - name: |
-#      "MEDIUM | RHEL-07-010320 | AUDIT | Check for existing account lockout settings"
-#      "MEDIUM | RHEL-07-010330 | AUDIT | Check for existing account lockout settings"
-#    command: "grep -iE '^auth\\s+required\\s+pam_faillock.so\\s+preauth\\s+silent\\s+audit\\s+deny={{ rhel7stig_pam_faillock.attempts }}{{ (rhel7stig_pam_faillock.fail_for_root) | ternary(' even_deny_root ',' ') }}fail_interval={{ rhel7stig_pam_faillock.interval }}\\s+unlock_time={{ rhel7stig_pam_faillock.unlock_time }}$' /etc/pam.d/{{ item }}"
-#    check_mode: no
-#    changed_when: no
-#    failed_when: rhel_07_010320_010330_preauth_audit.rc > 1
-#    register: rhel_07_010320_010330_preauth_audit
-#    with_items:
-#    - "system-auth"
-#    - "password-auth"
+  # TODO: Remove temporary audit check to determine if the following pamd module task needs to be run since the module is not idempotent
+  # - name: |
+  # "MEDIUM | RHEL-07-010320 | AUDIT | Check for existing account lockout settings"
+  # "MEDIUM | RHEL-07-010330 | AUDIT | Check for existing account lockout settings"
+  # command: "grep -iE '^auth\\s+required\\s+pam_faillock.so\\s+preauth\\s+silent\\s+audit\\s+deny={{ rhel7stig_pam_faillock.attempts }}{{ (rhel7stig_pam_faillock.fail_for_root) | ternary(' even_deny_root ',' ') }}fail_interval={{ rhel7stig_pam_faillock.interval }}\\s+unlock_time={{ rhel7stig_pam_faillock.unlock_time }}$' /etc/pam.d/{{ item }}"
+  # check_mode: no
+  # changed_when: no
+  # failed_when: rhel_07_010320_010330_preauth_audit.rc > 1
+  # register: rhel_07_010320_010330_preauth_audit
+  # with_items:
+  # - "system-auth"
+  # - "password-auth"
 
   # TODO: Once the pamd module is fixed (either args_present or updated) then remove the previous grep task and update the following.
   - name: |
       "MEDIUM | RHEL-07-010320 | PATCH | Accounts on the Red Hat Enterprise Linux operating system that are subject to three unsuccessful logon attempts within 15 minutes must be locked for the maximum configurable period."
       "MEDIUM | RHEL-07-010330 | PATCH | The Red Hat Enterprise Linux operating system must lock the associated account after three unsuccessful root logon attempts are made within a 15-minute period."
     pamd:
-#      name: "{{ item.item }}"
+      # name: "{{ item.item }}"
       name: "{{ item }}"
       state: updated
       type: auth
       control: required
       module_path: pam_faillock.so
       module_arguments: "preauth silent audit deny={{ rhel7stig_pam_faillock.attempts }}{{ (rhel7stig_pam_faillock.fail_for_root) | ternary(' even_deny_root ',' ') }}fail_interval={{ rhel7stig_pam_faillock.interval }} unlock_time={{ rhel7stig_pam_faillock.unlock_time }}"
-#     with_items: "{{ rhel_07_010320_010330_preauth_audit.results }}"
+    # with_items: "{{ rhel_07_010320_010330_preauth_audit.results }}"
     with_items:
     - "system-auth"
-    - "password-auth"    
-#     when: item.rc == 1
+    - "password-auth"
+  # when: item.rc == 1
 
   - name: "MEDIUM | RHEL-07-010330 | PATCH | The Red Hat Enterprise Linux operating system must lock the associated account after three unsuccessful root logon attempts are made within a 15-minute period."
     pamd:
@@ -513,7 +572,7 @@
     - "password-auth"
 
   # TODO: Remove temporary audit check to determine if the following pamd module task needs to be run since the module is not idempotent
-  #- name: "MEDIUM | RHEL-07-010330 | AUDIT | Check for existing account lockout settings"
+  # - name: "MEDIUM | RHEL-07-010330 | AUDIT | Check for existing account lockout settings"
   #  command: "grep -iE '^auth\\s+\\[default=die\\]\\s+pam_faillock.so\\s+authfail\\s+audit\\s+deny={{ rhel7stig_pam_faillock.attempts }}{{ (rhel7stig_pam_faillock.fail_for_root) | ternary(' even_deny_root ',' ') }}fail_interval={{ rhel7stig_pam_faillock.interval }}\\s+unlock_time={{ rhel7stig_pam_faillock.unlock_time }}$' /etc/pam.d/{{ item }}"
   #  check_mode: no
   #  changed_when: no
@@ -526,18 +585,18 @@
   # TODO: Once the pamd module is fixed (either args_present or updated) then remove the previous grep task and update the following.
   - name: "MEDIUM | RHEL-07-010330 | PATCH | The Red Hat Enterprise Linux operating system must lock the associated account after three unsuccessful root logon attempts are made within a 15-minute period."
     pamd:
-#      name: "{{ item.item }}"
+      # name: "{{ item.item }}"
       name: "{{ item }}"
       state: updated
       type: auth
       control: "[default=die]"
       module_path: pam_faillock.so
       module_arguments: "authfail audit deny={{ rhel7stig_pam_faillock.attempts }}{{ (rhel7stig_pam_faillock.fail_for_root) | ternary(' even_deny_root ',' ') }}fail_interval={{ rhel7stig_pam_faillock.interval }} unlock_time={{ rhel7stig_pam_faillock.unlock_time }}"
-#    with_items: "{{ rhel_07_010330_authfail_audit.results }}"
+    # with_items: "{{ rhel_07_010330_authfail_audit.results }}"
     with_items:
     - "system-auth"
     - "password-auth"
-#    when: item.rc == 1
+  # when: item.rc == 1
 
   - name: "MEDIUM | RHEL-07-010330 | PATCH | The Red Hat Enterprise Linux operating system must lock the associated account after three unsuccessful root logon attempts are made within a 15-minute period."
     pamd:
@@ -552,8 +611,7 @@
     with_items:
     - "system-auth"
     - "password-auth"
-
-  when: 
+  when:
   - rhel_07_010320 or rhel_07_010330
   tags:
   - RHEL-07-010320
@@ -593,6 +651,9 @@
     dest: /etc/login.defs
     regexp: ^#?FAIL_DELAY
     line: "FAIL_DELAY {{ rhel7stig_login_defaults.fail_delay_secs | default('4') }}"
+    owner: root
+    group: root
+    mode: 0640
   when: rhel_07_010430
   tags:
   - RHEL-07-010430
@@ -604,6 +665,9 @@
     regexp: "(?i)^#?PermitUserEnvironment"
     line: PermitUserEnvironment no
     validate: /usr/sbin/sshd -t -f %s
+    owner: root
+    group: root
+    mode: 0640
   notify: restart sshd
   when:
   - rhel_07_010460
@@ -618,6 +682,9 @@
     regexp: "(?i)^#?HostbasedAuthentication"
     line: HostbasedAuthentication no
     validate: /usr/sbin/sshd -t -f %s
+    owner: root
+    group: root
+    mode: 0640
   notify: restart sshd
   when:
   - rhel7stig_ssh_required
@@ -635,15 +702,19 @@
   block:
   - name: "MEDIUM | RHEL-07-010481 | PATCH | Check if the packaged rescue.service file was edited directly"
     shell: "cat /usr/lib/systemd/system/rescue.service | grep 'ExecStart=.*/usr/sbin/sulogin'"
+    args:
+      warn: false
     changed_when: no
     failed_when: no
     check_mode: no
     register: systemd_rescue_unit_check
 
   - name: "MEDIUM | RHEL-07-010481 | PATCH | Force reinstall systemd package to replace edited /usr/lib/systemd/system/rescue.service"
-    shell: yum -y reinstall systemd
+    command: yum -y reinstall systemd
+    args:
+      warn: false
     when: systemd_rescue_unit_check.rc == 1
-  when: 
+  when:
   - rhel_07_010481
   tags:
   - RHEL-07-010481
@@ -654,16 +725,22 @@
   # This task checks to test if pamd is enabled for pkcs11
   - name: MEDIUM | RHEL-07-010500 | PATCH | The Red Hat Enterprise Linux operating system must uniquely identify and must authenticate organizational users (or processes acting on behalf of organizational users) using multifactor authentication.
     shell: authconfig --test | grep "pam_pkcs11 is enabled"
+    args:
+      warn: false
     register: rhel_07_010500pkcs11output
 
   # This task gathers output so we can test if smartcard removal action is enabled
   - name: MEDIUM | RHEL-07-010500 | PATCH | The Red Hat Enterprise Linux operating system must uniquely identify and must authenticate organizational users (or processes acting on behalf of organizational users) using multifactor authentication.
     shell: authconfig --test | grep "smartcard removal action"
+    args:
+      warn: false
     register: rhel_07_010500scremovaloutput
 
   # This task gathers output so we can test if smartcard module is enabled
   - name: MEDIUM | RHEL-07-010500 | PATCH | The Red Hat Enterprise Linux operating system must uniquely identify and must authenticate organizational users (or processes acting on behalf of organizational users) using multifactor authentication.
     shell: authconfig --test | grep "smartcard module"
+    args:
+      warn: false
     register: rhel_07_010500scenabledoutput
 
   # This is to remediate if pam_pkcs11 is not installed.
@@ -677,18 +754,22 @@
     vars:
       ansible_python_interpreter: "{{ python2_bin }}"
     register: rhel_07_010500pkcs11install
-    when: 
+    when:
     - rhel_07_010500pkcs11output.stdout != 'pam_pkcs11 is enabled'
 
   # This task will remediate the smartcard login setting
   - name: MEDIUM | RHEL-07-010500 | PATCH | The Red Hat Enterprise Linux operating system must uniquely identify and must authenticate organizational users (or processes acting on behalf of organizational users) using multifactor authentication.
-    shell: authconfig --enablesmartcard --smartcardaction=0 --update
-    when: 
+    command: authconfig --enablesmartcard --smartcardaction=0 --update
+    args:
+      warn: false
+    when:
     - rhel_07_010500scenabledoutput.stdout == ' smartcard module = \"\"' or rhel_07_010500scremovaloutput.stdout == ' smartcard removal action = \"\"'
 
   # This task will remediate the smartcard login setting
   - name: MEDIUM | RHEL-07-010500 | PATCH | The Red Hat Enterprise Linux operating system must uniquely identify and must authenticate organizational users (or processes acting on behalf of organizational users) using multifactor authentication.
-    shell: authconfig --enablerequiresmartcard --update
+    command: authconfig --enablerequiresmartcard --update
+    args:
+      warn: false
     when: rhel_07_010500scenabledoutput.stdout == ' smartcard module = \"\"' or rhel_07_010500scremovaloutput.stdout == ' smartcard removal action = \"\"'
 
   # This remediates the screensaver settings for smartcard authentication
@@ -698,7 +779,9 @@
       dest: /etc/pam_pkcs11/pkcs11_eventmgr.conf
       regexp: '^#?/usr/X11R6/bin/xscreensaver-command -lock'
       line: "/usr/X11R6/bin/xscreensaver-command -lock"
-  
+      owner: root
+      group: root
+      mode: 0640
   # This remediates the pam_pkcs11.conf file to enforce the cackey usage for smartcard authentication
   ### NOTE:  If you have custom rules for /etc/pam_pkcs11/pam_pkcs11.conf then change the template pam_pkcs11.conf.j2
   - name: MEDIUM | RHEL-07-010500 | PATCH | The Red Hat Enterprise Linux operating system must uniquely identify and must authenticate organizational users (or processes acting on behalf of organizational users) using multifactor authentication.
@@ -708,7 +791,7 @@
       owner: root
       group: root
       mode: 0644
-    when: 
+    when:
     - rhel_07_010500pkcs11install is changed
   when:
   - rhel_07_010500
@@ -723,19 +806,18 @@
 
 - name: "MEDIUM | RHEL-07-020019 | AUDIT | The Red Hat Enterprise Linux operating system must have a host-based intrusion detection tool installed."
   debug:
-      msg:
-      - "Please install and enable the latest McAfee HIPS package, available from USCYBERCOM."
-      - "If the system does not support the McAfee HIPS package, install and enable a supported intrusion detection system application and document its use with the Authorizing Official."
+    msg:
+    - "Please install and enable the latest McAfee HIPS package, available from USCYBERCOM."
+    - "If the system does not support the McAfee HIPS package, install and enable a supported intrusion detection system application and document its use with the Authorizing Official."
   when:
   - rhel_07_020019
   tags:
   - audit
   - RHEL-07-020019
 
-
 - name: "MEDIUM | RHEL-07-020020 | The Red Hat Enterprise Linux operating system must prevent non-privileged users from executing privileged functions to include disabling, circumventing, or altering implemented security safeguards/countermeasures."
   block:
-      # is a HBSS installed?
+  # is a HBSS installed?
   - name: "MEDIUM | RHEL-07-020020 | AUDIT | The Red Hat Enterprise Linux operating system must prevent non-privileged users from executing privileged functions to include disabling, circumventing, or altering implemented security safeguards/countermeasures."
     stat:
       path: "{{ rhel_07_020020_HBSS_path }}"
@@ -746,7 +828,7 @@
     - rhel7stig_audit_disruptive
     tags:
     - RHEL-07-020020
-      # is a HIPS installed?
+  # is a HIPS installed?
   - name: "MEDIUM | RHEL-07-020020 | AUDIT | The Red Hat Enterprise Linux operating system must prevent non-privileged users from executing privileged functions to include disabling, circumventing, or altering implemented security safeguards/countermeasures."
     stat:
       path: "{{ rhel_07_020020_HIPS_path }}"
@@ -757,7 +839,7 @@
     - rhel7stig_audit_disruptive
     tags:
     - RHEL-07-020020
-  
+
   # This is an include to conditionally loop through users to selinux mappings
   - name: "MEDIUM | RHEL-07-020020 | AUDIT | The Red Hat Enterprise Linux operating system must prevent non-privileged users from executing privileged functions to include disabling, circumventing, or altering implemented security safeguards/countermeasures."
     include_tasks: audit_selinuxlocaluserdefs.yml
@@ -798,7 +880,7 @@
     special_time: "{{ (rhel7stig_cron_special_disable and
                   rhel7stig_aide_cron.special_time in ['hourly', 'daily', 'weekly', 'monthly']) |
                   ternary(omit, rhel7stig_aide_cron.special_time) }}"
-  when: 
+  when:
   - rhel_07_020030 or rhel_07_020040
   tags:
   - RHEL-07-020030
@@ -824,7 +906,7 @@
     insertafter: "^#install usb-storage"
     regexp: "^install usb-storage"
     line: install usb-storage /bin/true
-  when: 
+  when:
   - rhel_07_020100
   tags:
   - RHEL-07-020100
@@ -851,13 +933,15 @@
     line: install dccp /bin/true
   when: rhel_07_020101
   tags:
-      - RHEL-07-020101
-      - dccp
+  - RHEL-07-020101
+  - dccp
 
 - name: "MEDIUM | RHEL-07-020110 | PATCH | The Red Hat Enterprise Linux operating system must disable the file system automounter unless required."
   block:
   - name: "MEDIUM | RHEL-07-020110 | PATCH | The Red Hat Enterprise Linux operating system must disable the file system automounter unless required."
     shell: "systemctl show autofs | grep LoadState | cut -d = -f 2"
+    args:
+      warn: false
     register: rhel_07_020110_autofs_service_status
     changed_when: no
     check_mode: no
@@ -910,6 +994,9 @@
     dest: /etc/login.defs
     regexp: ^#?UMASK
     line: "UMASK {{ rhel7stig_login_defaults.umask | default('077') }}"
+    owner: root
+    group: root
+    mode: 0640
   when: rhel_07_020240
   tags:
   - RHEL-07-020240
@@ -924,6 +1011,7 @@
     ansible_python_interpreter: "{{ python2_bin }}"
   when: rhel_07_020260
   tags:
+  - skip_ansible_lint
   - RHEL-07-020260
   - packaging
 
@@ -931,6 +1019,8 @@
   block:
   - name: "MEDIUM | RHEL-07-020270 | AUDIT | The Red Hat Enterprise Linux operating system must not have unnecessary accounts."
     command: "grep '^{{ item }}:' /etc/passwd"
+    args:
+      warn: false
     check_mode: no
     failed_when: rhel_07_020270_audit.rc > 1
     changed_when: rhel_07_020270_audit.rc == 0
@@ -950,7 +1040,7 @@
     vars:
       rhel7stig_passwd_tasks: "RHEL-07-020270"
     when: rhel_07_020270_patch is changed
-  when: 
+  when:
   - rhel_07_020270
   tags:
   - RHEL-07-020270
@@ -959,6 +1049,8 @@
   block:
   - name: "MEDIUM | RHEL-07-020320 | AUDIT | The Red Hat Enterprise Linux operating system must be configured so that all files and directories have a valid owner."
     command: find "{{ item.mount }}" -xdev -nouser
+    args:
+      warn: false
     check_mode: no
     register: rhel_07_020320_audit
     failed_when: no
@@ -986,6 +1078,8 @@
   block:
   - name: "MEDIUM | RHEL-07-020330 | AUDIT | The Red Hat Enterprise Linux operating system must be configured so that all files and directories have a valid group owner."
     command: find "{{ item.mount }}" -xdev -nogroup
+    args:
+      warn: false
     check_mode: no
     register: rhel_07_020330_audit
     failed_when: no
@@ -1015,6 +1109,8 @@
     block: &r7s_homedir_audit
     - name: "MEDIUM | RHEL-07-020600 | AUDIT | The Red Hat Enterprise Linux operating system must be configured so that all local interactive users have a home directory assigned in the /etc/passwd file."
       shell: set -o pipefail ; pwck -r | grep -P {{ ld_regex | quote }}
+      args:
+        warn: false
       check_mode: no
       register: rhel7stig_users_missing_home
       changed_when: rhel7stig_07_20600_audit | length > 0
@@ -1025,9 +1121,11 @@
     tags:
     - disruption-high
 
-  ### NOTE: due to https://github.com/ansible/ansible/issues/24862 This is a shell command, and is quite frankly less than ideal.
+  #  NOTE: due to https://github.com/ansible/ansible/issues/24862 This is a shell command, and is quite frankly less than ideal.
   - name: "MEDIUM | RHEL-07-020600 | PATCH | The Red Hat Enterprise Linux operating system must be configured so that all local interactive users have a home directory assigned in the /etc/passwd file."
     command: "mkhomedir_helper {{ item }}"
+    args:
+      warn: false
     check_mode: "{{ rhel7stig_disruptive_check_mode }}"
     with_items: "{{ rhel7stig_07_20600_audit | map(attribute='id') | list }}"
     when:
@@ -1085,6 +1183,7 @@
   - rhel_07_020620
   - item.uid >= rhel7stig_int_gid
   tags:
+  - skip_ansible_lint
   - RHEL-07-020620
 
 - name: "MEDIUM | RHEL-07-020630 | PATCH | The Red Hat Enterprise Linux operating system must be configured so that all local interactive user home directories have mode 0750 or less permissive."
@@ -1099,6 +1198,7 @@
   - rhel_07_020630
   - item.uid >= rhel7stig_int_gid
   tags:
+  - skip_ansible_lint
   - RHEL-07-020630
 
 - name: "MEDIUM | RHEL-07-020640 | PATCH | The Red Hat Enterprise Linux operating system must be configured so that all local interactive user home directories are owned by their respective users."
@@ -1113,6 +1213,7 @@
   - rhel_07_020640
   - item.uid >= rhel7stig_int_gid
   tags:
+  - skip_ansible_lint
   - RHEL-07-020640
 
 - name: "MEDIUM | RHEL-07-020650 | PATCH | The Red Hat Enterprise Linux operating system must be configured so that all local interactive user home directories are group-owned by the home directory owners primary group."
@@ -1127,12 +1228,15 @@
   - rhel_07_020650
   - item.uid >= rhel7stig_int_gid
   tags:
+  - skip_ansible_lint
   - RHEL-07-020650
 
 - name: "MEDIUM | RHEL-07-020660 | The Red Hat Enterprise Linux operating system must be configured so that all files and directories contained in local interactive user home directories are owned by the owner of the home directory."
   block:
   - name: "MEDIUM | RHEL-07-020660 | AUDIT | The Red Hat Enterprise Linux operating system must be configured so that all files and directories contained in local interactive user home directories are owned by the owner of the home directory."
     command: "{{ find_command_base }} -print -quit"
+    args:
+      warn: false
     check_mode: no
     changed_when: rhel_07_020660_audit.stdout != ""
     register: rhel_07_020660_audit
@@ -1146,6 +1250,8 @@
 
   - name: "MEDIUM | RHEL-07-020660 | PATCH | The Red Hat Enterprise Linux operating system must be configured so that all files and directories contained in local interactive user home directories are owned by the owner of the home directory."
     command: "{{ find_command_base }} -exec chown {{ this_item.uid }} {} +"
+    args:
+      warn: false
     with_items: "{{ rhel_07_020660_audit.results }}"
     loop_control:
       label: "{{ rhel7stig_passwd_label }}"
@@ -1157,7 +1263,7 @@
     find_command_base: 'find "{{ this_item.dir }}" -mindepth 1
            ( -path "{{ this_item.dir }}/.*" -not -path "{{ this_item.dir }}/.*/*" -type f ) -o
            -not -user {{ this_item.uid }}'
-  when: 
+  when:
   - rhel_07_020660
   tags:
   - RHEL-07-020660
@@ -1166,6 +1272,8 @@
   block:
   - name: "MEDIUM | RHEL-07-020670 | AUDIT | Get all GIDs for each user."
     command: id -G "{{ item.id }}"
+    args:
+      warn: false
     check_mode: no
     changed_when: no
     register: rhel_07_all_gid_audit
@@ -1175,6 +1283,8 @@
 
   - name: "MEDIUM | RHEL-07-020670 | AUDIT | The Red Hat Enterprise Linux operating system must be configured so that all files and directories contained in local interactive user home directories are group-owned by a group of which the home directory owner is a member."
     command: "{{ find_command_base }} -print -quit"
+    args:
+      warn: false
     check_mode: no
     changed_when: rhel_07_020670_audit.stdout != ""
     register: rhel_07_020670_audit
@@ -1189,6 +1299,8 @@
 
   - name: "MEDIUM | RHEL-07-020670 | PATCH | The Red Hat Enterprise Linux operating system must be configured so that all files and directories contained in local interactive user home directories are group-owned by a group of which the home directory owner is a member."
     command: "{{ find_command_base }} -exec chgrp {{ this_item.gid }} {} +"
+    args:
+      warn: false
     with_items: "{{ rhel_07_020670_audit.results }}"
     loop_control:
       label: "{{ rhel7stig_passwd_label }}"
@@ -1201,7 +1313,7 @@
     find_command_base: 'find "{{ this_item.dir }}" -mindepth 1
             ( -path "{{ this_item.dir }}/.*" -not -path "{{ this_item.dir }}/.*/*" -type f ) -o
             -not -group {{ this_result.stdout.split(" ") | join(" -not -group ") }}'
-  when: 
+  when:
   - rhel_07_020670
   tags:
   - RHEL-07-020670
@@ -1216,6 +1328,8 @@
 
   - name: "MEDIUM | RHEL-07-020680 | AUDIT | The Red Hat Enterprise Linux operating system must be configured so that all files and directories contained in local interactive user home directories have a mode of 0750 or less permissive."
     command: find -H {{ item.0 | quote }} -not -type l -perm /027
+    args:
+      warn: false
     check_mode: no
     register: rhel_07_020680_patch_audit
     changed_when: rhel_07_020680_patch_audit.stdout != ""
@@ -1252,16 +1366,16 @@
       recursive: yes
       etype: "{{ item.1.etype }}"
       permissions: "{{ item.1.mode }}"
-    when: 
+    when:
     - not rhel7stig_system_is_container
     with_nested:
     - "{{ (ansible_check_mode | ternary(rhel_07_020680_patch_audit, rhel_07_020680_patch)).results |
       rejectattr('skipped', 'defined') | map(attribute='item') | map('first') | list }}"
     -
-        - etype: group
-          mode: rx
-        - etype: other
-          mode: '0'
+      - etype: group
+        mode: rx
+      - etype: other
+        mode: '0'
   when:
   - rhel_07_020680
   tags:
@@ -1271,6 +1385,8 @@
   block:
   - name: "MEDIUM | RHEL-07-020690 | AUDIT | The Red Hat Enterprise Linux operating system must be configured so that all local initialization files for interactive users are owned by the home directory user or root."
     command: "{{ find_command_base }} -print -quit"
+    args:
+      warn: false
     check_mode: no
     changed_when: rhel_07_020690_audit.stdout != ""
     register: rhel_07_020690_audit
@@ -1284,6 +1400,8 @@
 
   - name: "MEDIUM | RHEL-07-020690 | PATCH | The Red Hat Enterprise Linux operating system must be configured so that all local initialization files for interactive users are owned by the home directory user or root."
     command: "{{ find_command_base }} -exec chown {{ this_item.uid }} {} +"
+    args:
+      warn: false
     with_items: "{{ rhel_07_020690_audit.results }}"
     loop_control:
       label: "{{ rhel7stig_passwd_label }}"
@@ -1295,7 +1413,7 @@
     find_command_base: 'find "{{ this_item.dir }}" -mindepth 1 -type f
             -path "{{ this_item.dir }}/.*" -not -path "{{ this_item.dir }}/.*/*"
             -not ( -user {{ this_item.uid }} -o -user root )'
-  when: 
+  when:
   - rhel_07_020690
   tags:
   - RHEL-07-020690
@@ -1304,6 +1422,8 @@
   block:
   - name: "MEDIUM | RHEL-07-020700 | AUDIT | The Red Hat Enterprise Linux operating system must be configured so that all local initialization files for local interactive users are be group-owned by the users primary group or root."
     command: "{{ find_command_base }} -print -quit"
+    args:
+      warn: false
     check_mode: no
     changed_when: rhel_07_020700_audit.stdout != ""
     register: rhel_07_020700_audit
@@ -1317,6 +1437,8 @@
 
   - name: "MEDIUM | RHEL-07-020700 | PATCH | The Red Hat Enterprise Linux operating system must be configured so that all local initialization files for local interactive users are be group-owned by the users primary group or root."
     command: "{{ find_command_base }} -exec chgrp {{ this_item.gid }} {} +"
+    args:
+      warn: false
     with_items: "{{ rhel_07_020700_audit.results }}"
     loop_control:
       label: "{{ rhel7stig_passwd_label }}"
@@ -1328,13 +1450,15 @@
     find_command_base: 'find "{{ this_item.dir }}" -mindepth 1 -type f
             -path "{{ this_item.dir }}/.*" -not -path "{{ this_item.dir }}/.*/*"
             -not ( -group {{ this_item.gid }} -o -group root )'
-  when: 
+  when:
   - rhel_07_020700
   tags:
   - RHEL-07-020700
 
 - name: "MEDIUM | RHEL-07-020710 | RHEL-07-020720 | RHEL-07-020730 | AUDIT | Find ini files for interactive users."
   shell: find "{{ item }}" -maxdepth 1 -type f | awk -F"/" '$NF ~ /^\..*$/ {print $NF}' | grep -v history
+  args:
+    warn: false
   with_items: "{{ rhel_07_stig_interactive_homedir_results }}"
   register: rhel_07_020710_ini_file_list
   changed_when: no
@@ -1385,6 +1509,8 @@
   block:
   - name: "MEDIUM | RHEL-07-020720 | AUDIT | The Red Hat Enterprise Linux operating system must be configured so that all local interactive user initialization files executable search paths contain only paths that resolve to the users home directory."
     shell: find "{{ item }}" -maxdepth 1 -type f | xargs grep "PATH=" | cut -d':' -f1 | xargs realpath
+    args:
+      warn: false
     with_items: "{{ rhel_07_stig_interactive_homedir_results }}"
     register: rhel_07_020710_ini_path_grep_list
     changed_when: no
@@ -1392,13 +1518,13 @@
     when:
     - rhel_07_stig_interactive_homedir_results is defined
      - rhel_07_stig_interactive_homedir_inifiles is defined
-  
+
   - name: "MEDIUM | RHEL-07-020720 | AUDIT | The Red Hat Enterprise Linux operating system must be configured so that all local interactive user initialization files executable search paths contain only paths that resolve to the users home directory."
     debug:
       msg: You will need to audit and correct executable paths set in "{{ item }}" to contain only paths that resolve to the user's home directory.
     with_items:
     - "{{ rhel_07_020710_ini_path_grep_list.results | map(attribute='stdout_lines') | list }}"
-  
+
   - name: "MEDIUM | RHEL-07-020720 | PATCH | The Red Hat Enterprise Linux operating system must be configured so that all local interactive user initialization files executable search paths contain only paths that resolve to the users home directory."
     lineinfile:
       path: "{{ item }}"
@@ -1420,6 +1546,8 @@
   # Let's find any progerams with world-writable permissions.
   - name: "MEDIUM | RHEL-07-020730 | AUDIT | The Red Hat Enterprise Linux operating system must be configured so that local initialization files do not execute world-writable programs."
     shell: find / -xdev -perm -002 -type f -exec ls -ld {} \;
+    args:
+      warn: false
     failed_when: false
     changed_when: false
     register: rhel_07_020730_perms_results
@@ -1432,7 +1560,7 @@
     changed_when: false
     when:
     - rhel_07_020730_perms_results.stdout_lines is not defined
-  
+
   - name: "MEDIUM | RHEL-07-020730 | AUDIT | The Red Hat Enterprise Linux operating system must be configured so that local initialization files do not execute world-writable programs."
     include_tasks: audit_homedirinifiles.yml
     loop:
@@ -1441,7 +1569,7 @@
       loop_var: ini_item
     when:
     - rhel_07_020730_perms_results.stdout_lines is defined
- 
+
   - name: "MEDIUM | RHEL-07-020730 | PATCH | The Red Hat Enterprise Linux operating system must be configured so that local initialization files do not execute world-writable programs."
     file:
       path: "{{ item }}"
@@ -1475,6 +1603,8 @@
   block:
   - name: "MEDIUM | RHEL-07-020900 | AUDIT | The Red Hat Enterprise Linux operating system must be configured so that all system device files are correctly labeled to prevent unauthorized modification."
     command: find {{ rhel7stig_local_mounts | join(' ') }} -xdev ( -context *:device_t:* -o -context *:unlabeled_t:* ) ( -type c -o -type b ) -printf '%p %Z\n'
+    args:
+      warn: false
     changed_when: no
     check_mode: no
     register: rhel_07_020900_audit
@@ -1525,7 +1655,6 @@
     vars:
       removable_mount: "{{ ansible_mounts | json_query('[?mount == `/media`] | [0]') }}"
 
- 
   - name: "MEDIUM | RHEL-07-021010 | AUDIT | The Red Hat Enterprise Linux operating system must prevent files with the setuid and setgid bit set from being executed on file systems that are used with removable media."
     mount:
       path: /mnt
@@ -1585,6 +1714,8 @@
   block:
   - name: "MEDIUM | RHEL-07-021030 | AUDIT | The Red Hat Enterprise Linux operating system must be configured so that all world-writable directories are group-owned by root, sys, bin, or an application group."
     command: find {{ rhel7stig_local_mounts | join(' ') }} -xdev -type d -perm -002 -gid +999
+    args:
+      warn: false
     changed_when: rhel_07_021030_audit.stdout != ""
     check_mode: no
     register: rhel_07_021030_audit
@@ -1611,7 +1742,7 @@
     register: rhel_07_021031_world_writable_files
     with_items:
     - "{{ ansible_facts.mounts }}"
-      
+
   - name: "MEDIUM | RHEL-07-021031 | PATCH | The Red Hat Enterprise Linux operating system must be configured so that all world-writable directories are owned by root, sys, bin, or an application user. | Flatten results"
     set_fact:
       rhel_07_021031_world_writable_files_flat: "{{ rhel_07_021031_world_writable_files.results | map(attribute='stdout_lines') | flatten }}"
@@ -1619,16 +1750,16 @@
   - name: "MEDIUM | RHEL-07-021031 | AUDIT | The Red Hat Enterprise Linux operating system must be configured so that all world-writable directories are owned by root, sys, bin, or an application user. | List world-writable files"
     debug:
       msg:
-        - "Below are the world-writable files"
-        - "{{ rhel_07_021031_world_writable_files_flat }}"
-    when: 
+      - "Below are the world-writable files"
+      - "{{ rhel_07_021031_world_writable_files_flat }}"
+    when:
     - rhel_07_021031_world_writable_files_flat != []
 
   - name: "MEDIUM | RHEL-07-021031 | AUDIT | The Red Hat Enterprise Linux operating system must be configured so that all world-writable directories are owned by root, sys, bin, or an application user. | Alert on no world-writable files"
     debug:
       msg:
-        - "Good News! No world-writable files detected"
-    when: 
+      - "Good News! No world-writable files detected"
+    when:
     - rhel_07_021031_world_writable_files_flat == []
 
   - name: "MEDIUM | RHEL-07-021031 | AUDIT | The Red Hat Enterprise Linux operating system must be configured so that all world-writable directories are owned by root, sys, bin, or an application user. | Adjust world-writable files"
@@ -1670,7 +1801,7 @@
   failed_when:
   - result is failed
   - result.rc != 257
-  when: 
+  when:
   - rhel_07_021100
   tags:
   - RHEL-07-021100
@@ -1704,6 +1835,8 @@
   block:
   - name: "MEDIUM | RHEL-07-021300 | PATCH | The Red Hat Enterprise Linux operating system must disable Kernel core dumps unless needed."
     shell: "systemctl show kdump | grep LoadState | cut -d = -f 2"
+    args:
+      warn: false
     register: rhel_07_021300_kdump_service_status
     changed_when: no
     check_mode: no
@@ -1716,7 +1849,7 @@
     when:
     - rhel_07_021300_kdump_service_status.stdout == "loaded"
     - not rhel7stig_kdump_required
-  when: 
+  when:
   - rhel_07_021300
   tags:
   - RHEL-07-021300
@@ -1738,8 +1871,7 @@
       replace: '\1sha512\3'
     register: rhel_07_021620_sha256_result
     notify: "{{ rhel7stig_aide_handler }}"
-
-  when: 
+  when:
   - rhel_07_021620
   tags:
   - aide
@@ -1750,15 +1882,17 @@
   # Let's see what is configured in grub.
   - name: "MEDIUM | RHEL-07-021700 | AUDIT | The Red Hat Enterprise Linux operating system must not allow removable media to be used as the boot loader unless approved."
     shell: grep "set root" "{{ rhel7stig_grub_cfg_path }}"
+    args:
+      warn: false
     register: rhel7stig_grub_cfg_mediacheck
     changed_when: false
     failed_when: false
-  
+
   # Set the fact, even if the return was empty/nonexistant
   - name: "MEDIUM | RHEL-07-021700 | AUDIT | The Red Hat Enterprise Linux operating system must not allow removable media to be used as the boot loader unless approved."
     set_fact:
       rhel7stig_grub_bootloader_checkorder: "{{ rhel7stig_grub_cfg_mediacheck.stdout_lines | default(rhel7stig_grub_bootloader_validorder | list) | unique }}"
-  
+
   # Report on the bootloader list
   - name: "MEDIUM | RHEL-07-021700 | AUDIT | The Red Hat Enterprise Linux operating system must not allow removable media to be used as the boot loader unless approved."
     debug:
@@ -1767,7 +1901,6 @@
     with_items:
     - "{{ rhel7stig_grub_bootloader_checkorder }}"
     when: rhel7stig_grub_bootloader_validorder != rhel7stig_grub_bootloader_checkorder
-
   when:
   - rhel_07_021700
   - not rhel7stig_system_is_chroot
@@ -1810,8 +1943,11 @@
     path: /etc/audit/rules.d/audit.rules
     regexp: "^-f "
     line: "-f {{ rhel7stig_auditd_failure_flag }}"
+    owner: root
+    group: root
+    mode: 0640
   notify: update running audit failure mode
-  when: 
+  when:
   - rhel_07_030010
   tags:
   - auditd
@@ -1823,6 +1959,9 @@
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
     create: yes
+    owner: root
+    group: root
+    mode: 0640
   notify: restart auditd
   with_items:
   - { regexp: '^active =', line: 'active = yes'}
@@ -1841,6 +1980,9 @@
     path: /etc/audisp/audispd.conf
     regexp: '^overflow_action ='
     line: "overflow_action = syslog"
+    owner: root
+    group: root
+    mode: 0640
   notify: restart auditd
   when:
   - rhel_07_030210
@@ -1852,6 +1994,9 @@
     path: /etc/audisp/audispd.conf
     regexp: '^name_format ='
     line: name_format = hostname
+    owner: root
+    group: root
+    mode: 0640
   notify: restart auditd
   when:
   - rhel_07_030211
@@ -1864,7 +2009,10 @@
     path: /etc/audisp/audisp-remote.conf
     regexp: ^remote_server *=
     line: remote_server = {{ rhel7stig_audisp_remote_server }}
-  when: 
+    owner: root
+    group: root
+    mode: 0640
+  when:
   - rhel_07_030300 and rhel7stig_audisp_remote_server
   tags:
   - auditd
@@ -1875,7 +2023,10 @@
     path: /etc/audisp/audisp-remote.conf
     regexp: ^enable_krb5 +=
     line: enable_krb5 = yes
-  when: 
+    owner: root
+    group: root
+    mode: 0640
+  when:
   - rhel_07_030310
   tags:
   - auditd
@@ -1886,7 +2037,10 @@
     path: /etc/audisp/audisp-remote.conf
     regexp: ^disk_full_action +=
     line: "disk_full_action = {{ rhel7stig_audisp_disk_full_action }}"
-  when: 
+    owner: root
+    group: root
+    mode: 0640
+  when:
   - rhel_07_030320
   tags:
   - auditd
@@ -1897,7 +2051,10 @@
     path: /etc/audisp/audisp-remote.conf
     regexp: ^network_failure_action +=
     line: "network_failure_action = {{ rhel7stig_audisp_network_failure_action }}"
-  when: 
+    owner: root
+    group: root
+    mode: 0640
+  when:
   - rhel_07_030321
   tags:
   - auditd
@@ -1908,7 +2065,10 @@
     path: /etc/audit/auditd.conf
     regexp: ^space_left +=
     line: "space_left = {{ [rhel7stig_auditd_space_left | int, 51] | max }}"
-  when: 
+    owner: root
+    group: root
+    mode: 0640
+  when:
   - rhel_07_030330
   tags:
   - auditd
@@ -1919,11 +2079,14 @@
     path: /etc/audit/auditd.conf
     regexp: ^space_left_action +=
     line: "space_left_action = email"
+    owner: root
+    group: root
+    mode: 0640
   register: rhel7stig_auditd_space_left_action_result
   failed_when:
   - rhel7stig_auditd_space_left_action_result is failed
   - rhel7stig_auditd_space_left_action_result.rc != 257
-  when: 
+  when:
   - rhel_07_030340
   tags:
   - auditd
@@ -1934,11 +2097,14 @@
     path: /etc/audit/auditd.conf
     regexp: ^action_mail_acct +=
     line: "action_mail_acct = {{ rhel7stig_auditd_mail_acct }}"
+    owner: root
+    group: root
+    mode: 0640
   register: rhel7stig_auditd_action_mail_acct_result
   failed_when:
   - rhel7stig_auditd_action_mail_acct_result is failed
   - rhel7stig_auditd_action_mail_acct_result.rc != 257
-  when: 
+  when:
   - rhel_07_030350
   tags:
   - auditd
@@ -1966,8 +2132,7 @@
     - "-a always,exit -F arch=b32 -S execve -C gid!=egid -F egid=0 -k setgid"
     - "-a always,exit -F arch=b64 -S execve -C gid!=egid -F egid=0 -k setgid"
     notify: restart auditd
-
-  when: 
+  when:
   - rhel_07_030360
   tags:
   - audit-rules
@@ -2261,8 +2426,8 @@
   - '^(\$ModLoad imtcp)'
   - '^(\$ModLoad imudp)'
   - '^(\$ModLoad imrelp)'
-  #- '^(\$UDPServerRun)'
-  #- '^(\$InputTCPServerRun)'
+  # - '^(\$UDPServerRun)'
+  # - '^(\$InputTCPServerRun)'
   when:
   - rhel_07_031010
   - not rhel7stig_system_is_log_aggregator
@@ -2295,7 +2460,7 @@
     tags:
     - RHEL-07-040520
     - firewall
-    
+
   - name: "MEDIUM | RHEL-07-040520 | PATCH | The Red Hat Enterprise Linux operating system must enable an application firewall, if available."
     package:
       name: iptables-services
@@ -2310,7 +2475,7 @@
     tags:
     - RHEL-07-040520
     - firewall
-    
+
   - name: "MEDIUM | RHEL-07-040520 | PATCH | The Red Hat Enterprise Linux operating system must enable an application firewall, if available."
     service:
       name: "{{ rhel7stig_firewall_service }}"
@@ -2340,6 +2505,8 @@
     block:
     - name: "MEDIUM | RHEL-07-040100 | AUDIT | The Red Hat Enterprise Linux operating system must be configured to prohibit or restrict the use of functions, ports, protocols, and/or services, as defined in the Ports, Protocols, and Services Management Component Local Service Assessment (PPSM CLSA) and vulnerability assessments."
       shell: firewall-cmd --list-all | grep services | cut -d ':' -f 2 | tr " " "\n" | sed '/^$/d' | sort -u
+      args:
+        warn: false
       register: rhel7stig_PPSM_CLSA_check_firewalld
       changed_when: false
       failed_when: false
@@ -2349,7 +2516,7 @@
       tags:
       - RHEL-07-040100
       - firewall
-  
+
     - name: "MEDIUM | RHEL-07-040100 | AUDIT | The Red Hat Enterprise Linux operating system must be configured to prohibit or restrict the use of functions, ports, protocols, and/or services, as defined in the Ports, Protocols, and Services Management Component Local Service Assessment (PPSM CLSA) and vulnerability assessments."
       debug:
         msg: "The following task output is what firewalld is accepting on service ports to {{ ansible_hostname }}."
@@ -2360,9 +2527,9 @@
       tags:
       - RHEL-07-040100
       - firewall
-  
+
     - name: "MEDIUM | RHEL-07-040100 | AUDIT | The Red Hat Enterprise Linux operating system must be configured to prohibit or restrict the use of functions, ports, protocols, and/or services, as defined in the Ports, Protocols, and Services Management Component Local Service Assessment (PPSM CLSA) and vulnerability assessments."
-      debug: 
+      debug:
         var: rhel7stig_PPSM_CLSA_check_firewalld.stdout_lines
       changed_when: true
       when:
@@ -2380,21 +2547,23 @@
     tags:
     - RHEL-07-040100
     - firewall
-   
+
   - name: "MEDIUM | RHEL-07-040100 | AUDIT | The Red Hat Enterprise Linux operating system must be configured to prohibit or restrict the use of functions, ports, protocols, and/or services, as defined in the Ports, Protocols, and Services Management Component Local Service Assessment (PPSM CLSA) and vulnerability assessments."
     block:
     - name: "MEDIUM | RHEL-07-040100 | AUDIT | The Red Hat Enterprise Linux operating system must be configured to prohibit or restrict the use of functions, ports, protocols, and/or services, as defined in the Ports, Protocols, and Services Management Component Local Service Assessment (PPSM CLSA) and vulnerability assessments."
       shell: iptables-save | grep -i accept | grep -i input
+      args:
+        warn: false
       register: rhel7stig_PPSM_CLSA_check_iptables
       changed_when: false
       failed_when: false
       check_mode: no
-      when: 
+      when:
       - rhel_07_040100
       tags:
       - RHEL-07-040100
       - firewall
-    
+
     - name: "MEDIUM | RHEL-07-040100 | AUDIT | The Red Hat Enterprise Linux operating system must be configured to prohibit or restrict the use of functions, ports, protocols, and/or services, as defined in the Ports, Protocols, and Services Management Component Local Service Assessment (PPSM CLSA) and vulnerability assessments."
       debug:
         msg: "The following task output is what iptables is accepting on service ports to {{ ansible_hostname }}."
@@ -2405,9 +2574,9 @@
       tags:
       - RHEL-07-040100
       - firewall
-    
+
     - name: "MEDIUM | RHEL-07-040100 | AUDIT | The Red Hat Enterprise Linux operating system must be configured to prohibit or restrict the use of functions, ports, protocols, and/or services, as defined in the Ports, Protocols, and Services Management Component Local Service Assessment (PPSM CLSA) and vulnerability assessments."
-      debug: 
+      debug:
         var: rhel7stig_PPSM_CLSA_check_iptables.stdout_lines
       changed_when: true
       when:
@@ -2477,7 +2646,7 @@
     state: present
   - dest: /etc/profile
     state: "{{ (rhel7stig_shell_session_timeout.file == '/etc/profile') | ternary('present', 'absent') }}"
-  when: 
+  when:
   - rhel_07_040160
   tags:
   - RHEL-07-040160
@@ -2502,6 +2671,8 @@
   block:
   - name: "MEDIUM | RHEL-07-040180 | RHEL-07-040190 | RHEL-07-040200 | AUDIT | The Red Hat Enterprise Linux operating system must implement cryptography to protect the integrity of Lightweight Directory Access Protocol (LDAP) authentication communications."
     shell: systemctl status sssd.service | grep "Active" | cut -d ':' -f1 | tr " " "\n" | sed '/^$/d'
+    args:
+      warn: false
     check_mode: no
     register: rhel_07_040180_audit
     failed_when: no
@@ -2515,7 +2686,7 @@
     - RHEL-07-040190
     - RHEL-07-040200
     - ldap
-  
+
   - name: "MEDIUM | RHEL-07-040180 | RHEL-07-040190 | RHEL-07-040200 | AUDIT | The Red Hat Enterprise Linux operating system must implement cryptography to protect the integrity of Lightweight Directory Access Protocol (LDAP) authentication communications."
     stat:
       path: /etc/sssd/sssd.conf
@@ -2531,7 +2702,7 @@
     - RHEL-07-040190
     - RHEL-07-040200
     - ldap
-  
+
   - name: "MEDIUM | RHEL-07-040180 | RHEL-07-040190 | RHEL-07-040200 | PATCH | The Red Hat Enterprise Linux operating system must implement cryptography to protect the integrity of Lightweight Directory Access Protocol (LDAP) authentication communications."
     blockinfile:
       block: |
@@ -2541,6 +2712,9 @@
       path: /etc/sssd/sssd.conf
       insertafter: "^ldap_search_base*"
       create: yes
+      owner: root
+      group: root
+      mode: 0640
     when:
     - rhel_07_040180 or
       rhel_07_040190 or
@@ -2608,6 +2782,9 @@
     regexp: "(?i)^#?ClientAliveInterval"
     line: ClientAliveInterval {{ rhel7stig_ssh_session_timeout }}
     validate: /usr/sbin/sshd -t -f %s
+    owner: root
+    group: root
+    mode: 0640
   notify: restart sshd
   when:
   - rhel_07_040320
@@ -2622,6 +2799,9 @@
     regexp: "(?i)^#?RhostsRSAAuthentication"
     line: RhostsRSAAuthentication no
     validate: /usr/sbin/sshd -t -f %s
+    owner: root
+    group: root
+    mode: 0640
   notify: restart sshd
   when:
   - rhel_07_040330
@@ -2638,6 +2818,9 @@
     regexp: "(?i)^#?ClientAliveCountMax"
     line: ClientAliveCountMax 0
     validate: /usr/sbin/sshd -t -f %s
+    owner: root
+    group: root
+    mode: 0640
   notify: restart sshd
   when:
   - rhel_07_040340
@@ -2652,6 +2835,9 @@
     regexp: "(?i)^#?IgnoreRhosts"
     line: IgnoreRhosts yes
     validate: /usr/sbin/sshd -t -f %s
+    owner: root
+    group: root
+    mode: 0640
   notify: restart sshd
   when:
   - rhel_07_040350
@@ -2666,6 +2852,9 @@
     regexp: "(?i)^#?PrintLastLog"
     line: PrintLastLog yes
     validate: /usr/sbin/sshd -t -f %s
+    owner: root
+    group: root
+    mode: 0640
   notify: restart sshd
   when:
   - rhel_07_040360
@@ -2682,6 +2871,9 @@
     line: PermitRootLogin no
     insertafter: '(?i)^#?authentication'
     validate: /usr/sbin/sshd -t -f %s
+    owner: root
+    group: root
+    mode: 0640
   notify: restart sshd
   when:
   - rhel_07_040370
@@ -2697,6 +2889,9 @@
     regexp: "(?i)^#?IgnoreUserKnownHosts"
     line: IgnoreUserKnownHosts yes
     validate: /usr/sbin/sshd -t -f %s
+    owner: root
+    group: root
+    mode: 0640
   notify: restart sshd
   when:
   - rhel_07_040380
@@ -2712,6 +2907,9 @@
     regexp: "(?i)^#?MACs"
     line: "MACs {{ rhel7stig_ssh_macs }}"
     validate: /usr/sbin/sshd -t -f %s
+    owner: root
+    group: root
+    mode: 0640
   notify: restart sshd
   when:
   - rhel_07_040400
@@ -2779,6 +2977,9 @@
     regexp: "(?i)^#?GSSAPIAuthentication"
     line: GSSAPIAuthentication no
     validate: /usr/sbin/sshd -t -f %s
+    owner: root
+    group: root
+    mode: 0640
   notify: restart sshd
   when:
   - rhel_07_040430
@@ -2793,6 +2994,9 @@
     regexp: "(?i)^#?KerberosAuthentication"
     line: KerberosAuthentication no
     validate: /usr/sbin/sshd -t -f %s
+    owner: root
+    group: root
+    mode: 0640
   notify: restart sshd
   when:
   - rhel_07_040440
@@ -2807,6 +3011,9 @@
     regexp: "(?i)^#?StrictModes"
     line: StrictModes yes
     validate: /usr/sbin/sshd -t -f %s
+    owner: root
+    group: root
+    mode: 0640
   notify: restart sshd
   when:
   - rhel_07_040450
@@ -2821,6 +3028,9 @@
     regexp: "(?i)^#?UsePrivilegeSeparation"
     line: UsePrivilegeSeparation sandbox
     validate: /usr/sbin/sshd -t -f %s
+    owner: root
+    group: root
+    mode: 0640
   notify: restart sshd
   when:
   - rhel_07_040460
@@ -2835,6 +3045,9 @@
     regexp: "(?i)^#?Compression"
     line: Compression no
     validate: /usr/sbin/sshd -t -f %s
+    owner: root
+    group: root
+    mode: 0640
   notify: restart sshd
   when:
   - rhel_07_040470
@@ -2853,7 +3066,7 @@
       ansible_python_interpreter: "{{ python2_bin }}"
     when:
     - "'chrony' in ansible_facts.packages"
-    
+
   - name: "MEDIUM | RHEL-07-040500 | PATCH | The Red Hat Enterprise Linux operating system must, for networked systems, synchronize clocks with a server that is synchronized to one of the redundant United States Naval Observatory (USNO) time servers, a time server designated for the appropriate DoD network (NIPRNet/SIPRNet), and/or the Global Positioning System (GPS)."
     package:
       name: ntp
@@ -2869,6 +3082,9 @@
       dest: "{{ rhel7stig_time_service_configs[rhel7stig_time_service].conf }}"
       regexp: "{{ item.regexp }}"
       line: "{{ item.line }}"
+      owner: root
+      group: root
+      mode: 0640
     notify: restart {{ rhel7stig_time_service }}
     with_items: "{{ rhel7stig_time_service_configs[rhel7stig_time_service].lines }}"
   when:
@@ -2930,12 +3146,12 @@
     name: "{{ rhel7stig_firewall_service }}"
     state: present
   vars:
-      ansible_python_interpreter: "{{ python2_bin }}"
-  when: 
+    ansible_python_interpreter: "{{ python2_bin }}"
+  when:
   - rhel_07_040520
   tags:
-      - RHEL-07-040520
-      - firewall
+  - RHEL-07-040520
+  - firewall
 
 - name: "MEDIUM | RHEL-07-040610 | PATCH | The Red Hat Enterprise Linux operating system must not forward Internet Protocol version 4 (IPv4) source-routed packets."
   sysctl:
@@ -2944,7 +3160,7 @@
     value: '0'
     reload: "{{ rhel7stig_sysctl_reload }}"
     ignoreerrors: yes
-  when: 
+  when:
   - rhel_07_040610
   tags:
   - RHEL-07-040610
@@ -2983,7 +3199,7 @@
     value: '0'
     reload: "{{ rhel7stig_sysctl_reload }}"
     ignoreerrors: yes
-  when: 
+  when:
   - rhel_07_040620
   tags:
   - RHEL-07-040620
@@ -2997,7 +3213,7 @@
     sysctl_set: yes
     reload: "{{ rhel7stig_sysctl_reload }}"
     ignoreerrors: yes
-  when: 
+  when:
   - rhel_07_040630
   tags:
   - RHEL-07-040630
@@ -3010,7 +3226,7 @@
     value: '0'
     reload: "{{ rhel7stig_sysctl_reload }}"
     ignoreerrors: yes
-  when: 
+  when:
   - rhel_07_040640
   tags:
   - RHEL-07-040640
@@ -3023,7 +3239,7 @@
     value: '0'
     reload: "{{ rhel7stig_sysctl_reload }}"
     ignoreerrors: yes
-  when: 
+  when:
   - rhel_07_040641
   tags:
   - RHEL-07-040641
@@ -3036,7 +3252,7 @@
     value: '0'
     reload: "{{ rhel7stig_sysctl_reload }}"
     ignoreerrors: yes
-  when: 
+  when:
   - rhel_07_040650
   tags:
   - RHEL-07-040650
@@ -3049,7 +3265,7 @@
     value: '0'
     reload: "{{ rhel7stig_sysctl_reload }}"
     ignoreerrors: yes
-  when: 
+  when:
   - rhel_07_040660
   tags:
   - RHEL-07-040660
@@ -3059,6 +3275,8 @@
   block:
   - name: "MEDIUM | RHEL-07-040670 | PATCH | Network interfaces configured on the Red Hat Enterprise Linux operating system must not be in promiscuous mode."
     shell: "ip link | grep -i promisc | cut -d ':' -f 2"
+    args:
+      warn: false
     check_mode: no
     failed_when: no
     changed_when: rhel_07_040670_promisc_check.stdout != ''
@@ -3067,6 +3285,8 @@
 
   - name: "MEDIUM | RHEL-07-040670 | PATCH | Network interfaces configured on the Red Hat Enterprise Linux operating system must not be in promiscuous mode."
     shell: "ip link set dev {{ item }} promisc off"
+    args:
+      warn: false
     with_items: "{{ rhel_07_040670_promisc_check.stdout_lines }}"
 
   when:
@@ -3079,6 +3299,8 @@
   block:
   - name: "MEDIUM | RHEL-07-040680 | AUDIT | Check if postfix is installed."
     command: rpm -q postfix
+    args:
+      warn: false
     failed_when: no
     check_mode: no
     changed_when: no
@@ -3086,6 +3308,8 @@
 
   - name: "MEDIUM | RHEL-07-040680 | AUDIT | The Red Hat Enterprise Linux operating system must be configured to prevent unrestricted mail relaying."
     command: "/usr/sbin/postconf -n smtpd_client_restrictions"
+    args:
+      warn: false
     check_mode: no
     changed_when: no
     register: rhel_07_040680_postconf_audit
@@ -3093,10 +3317,12 @@
 
   - name: "MEDIUM | RHEL-07-040680 | PATCH | The Red Hat Enterprise Linux operating system must be configured to prevent unrestricted mail relaying."
     command: "/usr/sbin/postconf -e 'smtpd_client_restrictions=permit_mynetworks, reject'"
+    args:
+      warn: false
     when:
     - rhel_07_040680_rpm_audit.rc == 0
     - rhel_07_040680_postconf_audit.stdout != 'smtpd_client_restrictions = permit_mynetworks, reject'
-  when: 
+  when:
   - rhel_07_040680
   tags:
   - RHEL-07-040680
@@ -3108,6 +3334,9 @@
     regexp: "(?i)^#?X11Forwarding"
     line: X11Forwarding yes
     validate: /usr/sbin/sshd -t -f %s
+    owner: root
+    group: root
+    mode: 0640
   notify: restart sshd
   when:
   - rhel_07_040710
@@ -3123,6 +3352,9 @@
     regexp: "(?i)^#?X11UseLocalhost"
     line: X11UseLocalhost yes
     validate: /usr/sbin/sshd -t -f %s
+    owner: root
+    group: root
+    mode: 0640
   notify: restart sshd
   when:
   - rhel_07_040711
@@ -3138,6 +3370,9 @@
     line: "\tserver_args\t\t= -s /var/lib/tftpboot"
     insertafter: "\tserver\t\t\t="
     state: present
+    owner: root
+    group: root
+    mode: 0640
   register: result
   failed_when:
   - result is failed
@@ -3146,6 +3381,7 @@
   - rhel7stig_tftp_required
   - rhel_07_040720
   tags:
+  - skip_ansible_lint
   - RHEL-07-040720
 
 - name: "MEDIUM | RHEL-07-040730 | PATCH | The Red Hat Enterprise Linux operating system must not have an X Windows display manager installed unless approved."
@@ -3155,7 +3391,7 @@
     - xorg-x11-server-common
     state: absent
   vars:
-    ansible_python_interpreter: "{{ python2_bin }}" 
+    ansible_python_interpreter: "{{ python2_bin }}"
   when:
   - not rhel7stig_gui
   - rhel_07_040730
@@ -3181,18 +3417,20 @@
   block:
   - name: "MEDIUM | RHEL-07-040750 | PATCH | The Red Hat Enterprise Linux operating system must be configured so that the Network File System (NFS) is configured to use RPCSEC_GSS."
     shell: cat /etc/fstab | grep nfs
+    args:
+      warn: false
     register: rhel_07_040750_nfssec_check
     changed_when: false
     failed_when: false
     check_mode: no
-    when: 
+    when:
     - rhel_07_040750
     tags:
     - RHEL-07-040750
 
   - name: "MEDIUM | RHEL-07-040750 | PATCH | The Red Hat Enterprise Linux operating system must be configured so that the Network File System (NFS) is configured to use RPCSEC_GSS."
     debug:
-        msg: "There were no applicable NFS mounts found to audit per RHEL-07-040750."
+      msg: "There were no applicable NFS mounts found to audit per RHEL-07-040750."
     changed_when: true
     when:
     - rhel_07_040750
@@ -3202,7 +3440,7 @@
 
   - name: "MEDIUM | RHEL-07-040750 | PATCH | The Red Hat Enterprise Linux operating system must be configured so that the Network File System (NFS) is configured to use RPCSEC_GSS."
     debug:
-        msg: "The following NFS mount is required to be audited per RHEL-07-040750: {{ item }} - If the system is mounting file systems via NFS and has the sec option without the 'krb5:krb5i:krb5p' settings, the 'sec' option has the 'sys' setting, or the 'sec' option is missing, this is a finding."
+      msg: "The following NFS mount is required to be audited per RHEL-07-040750: {{ item }} - If the system is mounting file systems via NFS and has the sec option without the 'krb5:krb5i:krb5p' settings, the 'sec' option has the 'sys' setting, or the 'sec' option is missing, this is a finding."
     with_items:
     - "{{ rhel_07_040750_nfssec_check.stdout_lines }}"
     changed_when: true
@@ -3211,8 +3449,7 @@
     - rhel_07_040750_nfssec_check.stdout_lines is defined
     tags:
     - RHEL-07-040750
-
-  when: 
+  when:
   - rhel_07_040750
   tags:
   - RHEL-07-040750
@@ -3227,7 +3464,7 @@
     tags:
     - RHEL-07-040810
     - firewall
-  
+
   - name: "MEDIUM | RHEL-07-040810 | AUDIT | The Red Hat Enterprise Linux operating system access control program must be configured to grant or deny system access to specific hosts and services."
     include_tasks: audit_iptables.yml
     when:
@@ -3236,7 +3473,7 @@
     tags:
     - RHEL-07-040810
     - firewall
-  
+
   - name: "MEDIUM | RHEL-07-040810 | AUDIT | The Red Hat Enterprise Linux operating system access control program must be configured to grant or deny system access to specific hosts and services."
     debug:
       msg: "Your configured firewall service is {{ rhel7stig_firewall_service }}, but you have set the variable rhel7stig_start_firewall_service to false. We cannot audit control RHEL-07-040810. Please set the variable rhel7stig_start_firewall_service to true in the defaults file of this role and re-run the playbook."
@@ -3261,7 +3498,7 @@
     state: absent
   vars:
     ansible_python_interpreter: "{{ python2_bin }}"
-  when: 
+  when:
   - "'libreswan' not in ansible_facts.packages"
   - rhel_07_040820
   tags:
@@ -3274,7 +3511,7 @@
     value: '0'
     reload: "{{ rhel7stig_sysctl_reload }}"
     ignoreerrors: yes
-  when: 
+  when:
   - rhel_07_040830
   tags:
   - RHEL-07-040830
@@ -3290,7 +3527,7 @@
       state: present
     vars:
       ansible_python_interpreter: "{{ python2_bin }}"
-    when: 
+    when:
     - rhel7stig_gui
 
   - name: "MEDIUM | RHEL-07-041001 | PATCH | The Red Hat Enterprise Linux operating system must have the required packages for multifactor authentication installed."
@@ -3301,8 +3538,7 @@
       ansible_python_interpreter: "{{ python2_bin }}"
     when:
     - "'pam_pkcs11' not in ansible_facts.packages"
-
-  when: 
+  when:
   - rhel_07_041001
   tags:
   - RHEL-07-041001
@@ -3312,6 +3548,8 @@
   block:
   - name: "MEDIUM | RHEL-07-041002 | AUDIT | Check if pam service is configured in sssd file"
     command: 'grep -E "^\s*services\s*=.*pam" /etc/sssd/sssd.conf'
+    args:
+      warn: false
     check_mode: no
     changed_when:
     - sssd_services_check.rc == 1
@@ -3341,7 +3579,7 @@
     path: /etc/pam_pkcs11/pam_pkcs11.conf
     regexp: (?im)^([ \t]*cert_policy[ \t]*=(?:[^ \t\n]|[ \t](?!ocsp_on,))*?)(?:[ \t]ocsp_on,[ \t]*)?[ \t]*((?:[^,\n]|,(?![ \t]*ocsp_on,))*?)(?:,[ \t]*ocsp_on)?;$
     replace: '\1 ocsp_on, \2;'
-  when: 
+  when:
   - rhel_07_041003
   tags:
   - RHEL-07-041003
@@ -3359,6 +3597,8 @@
 
   - name: "MEDIUM | RHEL-07-041010 | AUDIT | check if wifi is enabled"
     command: nmcli radio wifi
+    args:
+      warn: no
     register: rhel_07_wifi_enabled
     check_mode: no
     changed_when: rhel_07_wifi_enabled.stdout != "disabled"
@@ -3366,9 +3606,11 @@
 
   - name: "MEDIUM | RHEL-07-041010 | PATCH | The Red Hat Enterprise Linux operating system must be configured so that all wireless network adapters are disabled."
     command: nmcli radio wifi off
-    when: 
+    args:
+      warn: no
+    when:
     - rhel_07_wifi_enabled is changed
-  when: 
+  when:
   - rhel_07_041010
   tags:
   - RHEL-07-041010
@@ -3377,7 +3619,7 @@
   block:
   - name: "MEDIUM | RHEL-07-910055 | AUDIT | The Red Hat EnterpriseLinux operating system must protect audit information from unauthorized read, modification, or deletion | Get log files"
     find:
-      paths: /var/log/audit 
+      paths: /var/log/audit
     register: rhel_07_910055_audit_log_files
 
   - name: "MEDIUM | RHEL-07-910055 | PATCH | The Red Hat EnterpriseLinux operating system must protect audit information from unauthorized read, modification, or deletion | Apply permissions"
