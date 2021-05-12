@@ -1,3 +1,4 @@
+---
 ### Variables for for stig options
 
 run_heavy_tests: true
@@ -16,7 +17,7 @@ rhel7stig_cat1: {{ rhel7stig_cat1_patch }}
 rhel7stig_cat2: {{ rhel7stig_cat2_patch }}
 rhel7stig_cat3: {{ rhel7stig_cat3_patch }}
 
-## CAT I 
+## CAT I
 RHEL_07_010010: {{ rhel_07_010010 }}
 RHEL_07_010020: {{ rhel_07_010020 }}
 RHEL_07_010290: {{ rhel_07_010290 }}
@@ -272,7 +273,6 @@ RHEL_07_040530: {{ rhel_07_040530 }}
 RHEL_07_040600: {{ rhel_07_040600 }}
 
 
-
 # if using gnome/gui or not
 rhel7stig_gui: {{ rhel7stig_gui }}
 
@@ -303,18 +303,17 @@ rhel7stig_nameservers: {{ rhel_07_040600_dns_servers | to_json }}
 # Ability to use own banner if set to false
 rhel7stig_use_disa_banner: true
 
-rhel7stig_disa_logon_banner: 
+rhel7stig_disa_logon_banner:
 -  You are accessing a U.S. Government (USG) Information System (IS) that is
 -  By using this IS (which includes any device attached to this IS), you consent
--  -The USG routinely intercepts and monitors communications on this IS for 
+-  -The USG routinely intercepts and monitors communications on this IS for
 -  -At any time, the USG may inspect and seize data stored on this IS.
--  -Communications using, or data stored on, this IS are not private, are subject 
+-  -Communications using, or data stored on, this IS are not private, are subject
 -  -This IS includes security measures (e.g., authentication and access controls)
 -  -Notwithstanding the above, using this IS does not constitute consent to PM, LE
--  communications and work product are private and confidential. See User 
+-  communications and work product are private and confidential. See User
 
 rhel7stig_logon_banner: Restricted System. Only use if you have been authorised to do so.
-
 
 
 # Users thats should exist in the sysadm_u selinux User context
@@ -324,8 +323,8 @@ rhel7stig_staff_u:
 
 # host intrision protection e.g. Mcafee HIPS
 rhel7stig_hip_enabled: false
-rhel7stig_hip_pkg: 
-rhel7stig_hip_proc: 
+rhel7stig_hip_pkg:
+rhel7stig_hip_proc:
 
 # RHEL_07_020040 - if notify by mail
 rhel7stig_aide_cron:
