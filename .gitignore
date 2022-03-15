@@ -9,6 +9,7 @@ tests/Dockerfile
 packer_cache
 delete*
 ignore*
+.cache
 # VSCode
 .vscode
 .github/*
@@ -43,3 +44,7 @@ test_inv
 
 # refactr workflow gitignore
 .github/workflow/
+
+# GitHub Issue and PR Templates
+.github/ISSUE_TEMPLATE
+.github/pull_request_template.md
